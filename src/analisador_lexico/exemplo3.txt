@@ -1,0 +1,9 @@
+int valor=1;
+for(int i=1; i<10; i++){
+    valor +=i;
+}
+if(valor<10){
+System.out.println("Menor");
+} else {
+System.out.println("Maior");
+}

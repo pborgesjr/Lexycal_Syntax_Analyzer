@@ -1,0 +1,132 @@
+package analisador_lexico;
+
+import java.io.*;
+import java.lang.*;
+import java_cup.runtime.*;
+import java_cup.runtime.Symbol;
+import java.util.ArrayList;
+import java.util.*;
+import analisador_lexico.Yylex;
+
+
+parser code
+{:
+    private Symbol s;  //s recebe o Symbol da classe Symbol
+    
+    public static void main(String args[]) throws Exception{
+        new parser(new Yylex(System.in)).parse();
+    }
+    
+    public void syntax_error(Symbol s){
+        report_error("Erro sintático na sentença. Linha: " + (s.right + 1) + " Coluna: " + s.left + ". Texto: \"" + s.value +
+                      "\"", null);
+    }
+
+    public Symbol getS(){
+        return this.s;
+}
+:}
+
+/* Terminais - Foram retirados do arquivo Lexer1.flex */
+terminal String LINHA, OP_ARITMETICO, OP_LOGICO, OP_RELACIONAL, OP_ATRIBUICAO, IF, ELSE, SEPARADOR, FOR, ID, ABRE_PARENTESE, 
+FECHA_PARENTESE, ABRE_CHAVE, ERROR,PONTOEVIRGULA, PALAVRARESERVADA, ESPECIAL, ENTRADA, SAIDA, TIPO_VARIAVEL, INICIO, FIM;
+
+terminal Integer NUMERO;
+terminal Float FLOAT;
+
+/* Não Terminais */
+non terminal START,COD, DVAR, OP, INOUT, IN, OUT, INFO, ATRIB, RELA, COND, COND1, REPET, LOGIC, INCREMENTO;
+non terminal Integer EXPR_INT;
+non terminal Float EXPR, EXPR_FLOAT;
+
+start with START;
+
+START ::= COD START | COD | INICIO FIM
+;
+
+COD ::=       DVAR
+            | ATRIB
+            | INFO
+            | INOUT
+            | RELA
+            | COND
+            | COND1
+            | EXPR
+            | REPET
+            | LOGIC
+;
+
+/* Declarando Variáveis */
+DVAR    ::=  TIPO_VARIAVEL ID PONTOEVIRGULA
+            | TIPO_VARIAVEL ID OP_ATRIBUICAO INFO PONTOEVIRGULA
+;
+
+INFO    ::=   NUMERO
+            | FLOAT
+            | ID
+            | ESPECIAL
+            | LINHA
+            | ABRE_CHAVE
+            | SEPARADOR
+            | PALAVRARESERVADA
+            | ERROR
+;
+
+INOUT   ::=  IN
+           | OUT
+;
+
+IN      ::=   INCREMENTO ENTRADA ABRE_PARENTESE SEPARADOR INFO SEPARADOR FECHA_PARENTESE PONTOEVIRGULA
+;
+
+OUT     ::= SAIDA ABRE_PARENTESE SEPARADOR INFO SEPARADOR FECHA_PARENTESE PONTOEVIRGULA 
+            | SAIDA ABRE_PARENTESE INFO FECHA_PARENTESE PONTOEVIRGULA 
+;
+
+ATRIB   ::=   ID OP_ATRIBUICAO INFO PONTOEVIRGULA
+            | ID OP_ATRIBUICAO INFO
+            | ID OP_ATRIBUICAO PONTOEVIRGULA
+            | ID OP_ATRIBUICAO EXPR PONTOEVIRGULA
+;
+
+INCREMENTO ::= ID OP_ATRIBUICAO
+;
+
+RELA    ::=  ABRE_PARENTESE INFO OP_RELACIONAL INFO FECHA_PARENTESE
+            | INFO OP_RELACIONAL INFO
+            | INFO OP_RELACIONAL INFO PONTOEVIRGULA
+;
+
+COND    ::= IF ABRE_PARENTESE RELA FECHA_PARENTESE 
+          | IF ABRE_PARENTESE LOGIC FECHA_PARENTESE
+          | IF ABRE_PARENTESE EXPR_INT OP_RELACIONAL INFO FECHA_PARENTESE
+;
+
+COND1 ::=  ELSE ABRE_CHAVE
+;
+
+/* Operações Aritméticas */
+
+EXPR     ::=  EXPR_INT
+            | EXPR_FLOAT
+;
+
+EXPR_INT ::= ABRE_PARENTESE NUMERO OP_ARITMETICO NUMERO FECHA_PARENTESE
+            | NUMERO OP_ARITMETICO NUMERO
+            | ID OP_ARITMETICO NUMERO
+;
+
+EXPR_FLOAT::= ABRE_PARENTESE EXPR_FLOAT FECHA_PARENTESE
+            | FLOAT OP FLOAT 
+            | OP FLOAT
+            | ID OP FLOAT
+;
+
+/* Operador Repetição */
+REPET   ::=   FOR ABRE_PARENTESE ATRIB RELA INCREMENTO FECHA_PARENTESE ABRE_CHAVE
+            | FOR ABRE_PARENTESE DVAR RELA INCREMENTO FECHA_PARENTESE ABRE_CHAVE
+;
+
+/* Operador Lógico */
+LOGIC   ::= NUMERO OP_LOGICO NUMERO
+;
